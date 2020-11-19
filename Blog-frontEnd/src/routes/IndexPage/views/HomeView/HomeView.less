@@ -1,0 +1,72 @@
+
+
+.container{
+    margin: 35px 0;
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 8%;
+}
+.left{
+    flex: 1;
+}
+.right{
+    width: 282px;
+    display: flex;
+    flex-direction:column;
+}
+.arctleItem :hover {
+    border-color: #009688;
+    box-shadow: 0px 1px 16px -8px #000;
+}
+.arctleItem {
+    background: white;
+    margin-bottom: 23px;
+    margin-right: 35px;
+}
+.arctleItem1 :hover{
+    border-color: none;
+    box-shadow: none;
+}
+
+:global{
+    .ant-list-item-meta{
+        margin-bottom: 0 !important;
+    }
+    .ant-list-item-action{//设置action的样式
+        height: 40px;
+        line-height: 40px;
+    }
+
+    //阅读全文按钮向右浮动
+    .ant-list-item-action li:last-child{
+        float: right;
+        padding: 0px;
+    }
+    .ant-tabs-nav-wrap{
+        justify-content: center;
+    }
+}
+
+@media screen and (max-width:940px){
+    .right{
+        display: none;
+    }
+
+    .arctleItem {
+        background: white;
+        margin-bottom: 23px;
+        margin-right: 0;
+    }
+}
+
+@media screen and (max-width:624px){
+    .readText{
+        display: none;
+    }
+    :global{
+        .ant-list-item-action{//设置action的样式
+            height: auto;
+            line-height: 0px;
+        }
+    }
+}

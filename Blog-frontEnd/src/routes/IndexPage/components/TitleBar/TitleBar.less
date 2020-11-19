@@ -1,0 +1,142 @@
+.titleBar{
+  background: transparent;
+  position: fixed;
+  z-index: 999;
+  width: 100%;
+}
+.horizontal_Menu {
+  border: 0;
+  float:right;
+  color: white;
+  background-color: transparent !important;
+  line-height: 57px;
+  :global{
+    .ant-popover-inner{
+        background-color: transparent !important;
+    }
+    .ant-menu-light{
+      border-right: none;
+    }
+    .ant-popover-arrow{
+      display: none;
+    }
+    .ant-menu-submenu-title{
+      color: white !important;
+    }
+  
+    .ant-menu-item{
+      text-align: center !important;
+      color: white !important;
+    }
+  
+    // .ant-menu-item :hover{
+    //   background: gray !important;
+    // }
+  
+    .ant-menu-item-only-child{
+      color: black !important;
+    }
+  }
+}
+
+:global{
+  .ant-menu-vertical{
+      min-width: 90px !important;
+      border-radius: 7px;
+  }
+  .ant-drawer-header{
+    padding: 0px;
+  }
+}
+
+.search{
+  color: white;
+  border: 0;
+  float: right;
+  background-color: transparent !important;
+  line-height: 57px;
+}
+
+.header{
+  color: white;
+  display: inline-block;
+  line-height: 55px;
+  margin-bottom: 0px;
+  margin-left: 10px;
+}
+
+.phoneMenuButton{//小屏幕的唤醒菜单按钮
+  display: none;
+}
+
+// .titleBar :global{//改变input placeHodler颜色
+//   input.ant-input::-webkit-input-placeholder{
+//     color: white;
+//   }
+//   input.ant-input{
+//     background: transparent;
+//   }
+
+//   .ant-input-affix-wrapper :hover{
+//     border-color: white !important;
+//     border-right-width: 0em !important;
+//   }
+//   .ant-input-affix-wrapper :focus{
+//     border-color: white !important;
+//     border-right-width: 0px !important;
+//     box-shadow: unset !important;
+//     -webkit-box-shadow:unset !important;
+//   }
+// }
+
+
+
+@media screen and (max-width:873px){
+  .vertical_Menu{
+    border: 0;
+    float:left;
+    color: black;
+    background-color: transparent !important;
+  //line-height: 57px;
+  }
+
+  .header{
+    margin-left: 0px;
+  }
+
+  .titleBar{
+    text-align: center;
+  }
+
+  .phoneMenuButton{//小屏幕的唤醒菜单按钮
+    display: block;
+    float: left;
+    padding: 0px;
+    background: transparent !important;
+    margin-top: 11px;
+    margin-left: 14px;
+    border-color: transparent !important;
+  }
+
+  //消除antd button点击的动画
+  button[ant-click-animating-without-extra-node]:after {
+    border: 0 none;
+    opacity: 0;
+    animation:none 0 ease 0 1 normal;
+  }
+}
+
+@media screen and (min-width:1200px){
+  .titleBar{
+    background: transparent/*  */;
+    position: fixed;
+    z-index: 999;
+    width: 100%;
+    padding: 0px 10%;
+  }
+  .header{
+    margin-left: 0px;
+  }
+}
+  
+  
