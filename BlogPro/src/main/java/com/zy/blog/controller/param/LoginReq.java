@@ -29,5 +29,5 @@ public class LoginReq {
 	/**
 	 * 记住密码
 	 */
-	private Boolean remeber;
+	private Boolean remeber = false;
 }

@@ -77,7 +77,7 @@ public class UserServiceImpl implements IUserService {
 		mailService.send(message);
 		
 		//将验证code存入redis，默认过期时间为2天，如果2天没有进行操作，则key失效
-		redisUtil.setEx(userUid+ "regist", code, 2, TimeUnit.DAYS);
+		redisUtil.setEx(email+ "-regist", code, 2, TimeUnit.DAYS);
 		return userUid;
 	}
 
@@ -87,37 +87,41 @@ public class UserServiceImpl implements IUserService {
 		User user = userMapper.findByIdentity(identify);
 		if(user == null) {
 			throw new MyException(ResponseEnum.FAILURE.getCode(),"用户不存在！");
-		}else {
-			try {
-				//验证成功
-				if(SecuritySHA1Utils.shaEncode(password) == user.getPwd()) {
-					//修改登录时间
-					userMapper.updateLoginTime(user.getUserUid(), new Date());
-					
-					UserInfo info = new UserInfo();
-					info.setDisplayName(user.getDisplayName());
-					info.setUserUid(user.getUserUid());
-					String token = UUID.randomUUID().toString().replaceAll("-", "");
-					//将用户token保存到redis中
-					if(remeber) {
-						redisUtil.setEx(user.getUserUid(), token, 15, TimeUnit.DAYS);
-					}else {
-						redisUtil.setEx(user.getUserUid(), token, 30, TimeUnit.MINUTES);
-					}
-					info.setToken(token);
-					return info;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new MyException(ResponseEnum.ERROR.getCode(),"系统错误！");
-			}
 		}
+		if(user.getStatus() != 1) {
+			throw new MyException(ResponseEnum.USER_NOT_ACTIVE);
+		}
+		
+		try {
+			//验证成功
+			if(user.getPwd().equals(SecuritySHA1Utils.shaEncode(password))) {
+				//修改登录时间
+				userMapper.updateLoginTime(user.getUserUid(), new Date());
+				
+				UserInfo info = new UserInfo();
+				info.setDisplayName(user.getDisplayName());
+				info.setUserUid(user.getUserUid());
+				String token = UUID.randomUUID().toString().replaceAll("-", "");
+				//将用户token保存到redis中
+				if(remeber) {
+					redisUtil.setEx(user.getUserUid(), token, 15, TimeUnit.DAYS);
+				}else {
+					redisUtil.setEx(user.getUserUid(), token, 30, TimeUnit.MINUTES);
+				}
+				info.setToken(token);
+				return info;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new MyException(ResponseEnum.ERROR.getCode(),"系统错误！");
+		}
+		
 		throw new MyException(ResponseEnum.ERROR.getCode(),"登录失败！");
 	}
 
 	@Override
-	public void valiateRegistCode(String userUid,String code) {
-		String reg_code = redisUtil.get(userUid + "regist");
+	public void valiateRegistCode(String email,String code) {
+		String reg_code = redisUtil.get(email + "-regist");
 		if(reg_code == null) {
 			throw new MyException(ResponseEnum.FAILURE.getCode(),"激活验证码过期，请重新获取激活验证码！");
 		}
@@ -125,7 +129,7 @@ public class UserServiceImpl implements IUserService {
 			throw new MyException(ResponseEnum.FAILURE.getCode(),"激活验证码错误，请输入正确激活验证码！");
 		}
 		
-		User user = userMapper.findByUserUid(userUid);
+		User user = userMapper.findByEmail(email);
 		if (user == null) {
 			throw new MyException(ResponseEnum.FAILURE);
 		}
@@ -135,9 +139,9 @@ public class UserServiceImpl implements IUserService {
 		}
 		
 		//激活用户
-		userMapper.activateUser(userUid);
+		userMapper.activateUser(email);
 		
 		//删除
-		redisUtil.delete(userUid);
+		redisUtil.delete(email + "-regist");
 	}
 }

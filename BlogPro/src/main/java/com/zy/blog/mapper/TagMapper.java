@@ -60,6 +60,9 @@ public interface TagMapper {
 	
 	@Delete("DELETE FROM t_artcle_tag WHERE artcle_id=#{artcleId}")
 	void deleteArticleTagByArtcleId(long artcleId);
+	
+	@Select("SELECT * FROM t_artcle_tag WHERE tag_id=#{tagId}")
+	List<ArticleTag> getArticleTagByTagId(long tagId);
 
 	/**
 	 * @return

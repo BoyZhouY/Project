@@ -41,5 +41,5 @@ public interface IUserService {
 	 * 验证注册校验码
 	 * @param code
 	 */
-	public void valiateRegistCode(String userUid,String code);
+	public void valiateRegistCode(String email,String code);
 }

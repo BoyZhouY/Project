@@ -29,7 +29,7 @@ public interface UserMapper {
 	 * @param identity
 	 * @return
 	 */
-	@Select("SELECT * FROM user WHERE u_email=#{identity} or u_username=#{identity}")
+	@Select("SELECT * FROM t_user WHERE u_email=#{identity} or u_username=#{identity}")
 	@Results(id="userMap",value={
 		@Result(property = "userUid",column = "u_uid",javaType = String.class,jdbcType = JdbcType.VARCHAR),
 		@Result(property = "email",column = "u_email",javaType = String.class,jdbcType = JdbcType.VARCHAR),
@@ -44,11 +44,11 @@ public interface UserMapper {
 	})
 	public User findByIdentity(String identity);
 	
-	@Select("SELECT * FROM user WHERE u_uid=#{userUid}")
+	@Select("SELECT * FROM t_user WHERE u_uid=#{userUid}")
 	@ResultMap(value = "userMap")
 	public User findByUserUid(String userUid);
 	
-	@Select("SELECT * FROM user WHERE u_email=#{email}")
+	@Select("SELECT * FROM t_user WHERE u_email=#{email}")
 	@ResultMap(value = "userMap")
 	public User findByEmail(String email);
 	
@@ -58,7 +58,7 @@ public interface UserMapper {
 	 * @param email 用户邮箱
 	 * @param pwd 用户密码
 	 */
-	@Insert("INSERT INTO user (u_uid,u_username,u_email,display_name,u_pwd,u_status)VALUES(#{userUid},#{username},#{email},#{nickName},sha(#{pwd}),0)")
+	@Insert("INSERT INTO t_user (u_uid,u_username,u_email,display_name,u_pwd,u_status)VALUES(#{userUid},#{username},#{email},#{nickName},sha(#{pwd}),0)")
 	public void addUser(@Param("userUid")String userUid,
 			@Param("username")String username,
 			@Param("nickName")String nickName,
@@ -69,14 +69,14 @@ public interface UserMapper {
 	 * 更新用户激活状态
 	 * @param userUid
 	 */
-	@Update("UPDATE user SET u_status=1 WHERE u_uid=#{userUid}")
-	public void activateUser(String userUid);
+	@Update("UPDATE t_user SET u_status=1 WHERE u_email=#{email}")
+	public void activateUser(String email);
 	
 	/**
 	 * 更新用户登录时间
 	 * @param userUid
 	 * @param currentTime
 	 */
-	@Update("UPDATE user SET recently_landed_time=#{currentTime} WHERE u_uid=#{userUid}")
+	@Update("UPDATE t_user SET recently_landed_time=#{currentTime} WHERE u_uid=#{userUid}")
 	public void updateLoginTime(@Param("userUid")String userUid,@Param("currentTime")Date currentTime);
 }

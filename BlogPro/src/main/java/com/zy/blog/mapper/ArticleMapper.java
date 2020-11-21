@@ -121,7 +121,7 @@ public interface ArticleMapper {
 			+ "ON A.category_id = B.c_id "
 			+ "JOIN t_user AS C "
 			+ "ON C.u_uid = A.author_id WHERE A.open = 1"
-			+ "ORDER BY #{field} DESC LIMIT #{pageIndex},#{pageSize} ")
+			+ "ORDER BY A.#{field} DESC LIMIT #{pageIndex},#{pageSize} ")
 	@Results(id="ArticleDOMap",value = {
 			@Result(property = "id",column = "id"),
 			@Result(property = "title",column = "title"),
@@ -162,4 +162,82 @@ public interface ArticleMapper {
 	 */
 	@Delete("DELETE FROM t_article WHERE id=#{articleId}")
 	void deleteById(long articleId);
+
+	/**
+	 * @param queryFields
+	 * @return
+	 */
+	@Select("SELECT COUNT(*) FROM t_article AS A WHERE A.open = 1")
+	int queryCount();
+
+	/**
+	 * @param id
+	 * @param i
+	 * @param pageSize
+	 * @return
+	 */
+	@Select("SELECT A.id,"
+			+ "C.display_name AS authorName,"
+			+ "A.title,"
+			+ "A.summary,"
+			+ "A.reading_number,"
+			+ "A.like_number,"
+			+ "B.c_name AS categoryName,"
+			+ "A.publish_date,"
+			+ "A.original "
+			+ "FROM t_article AS A "
+			+ "JOIN t_category AS B "
+			+ "ON A.category_id = B.c_id "
+			+ "JOIN t_user AS C "
+			+ "ON C.u_uid = A.author_id WHERE A.open = 1 AND A.category_id=#{category_id}"
+			+ "ORDER BY A.publish_date DESC LIMIT #{pageIndex},#{pageSize} ")
+	@ResultMap(value = "ArticleDOMap")
+	List<ArticleDO> queryArtcleByCategoryId(@Param("category_id")long category_id, @Param("pageIndex")int pageIndex, @Param("pageSize")int pageSize);
+
+	/**
+	 * @param id
+	 * @return
+	 */
+	int queryArtcleCountByCategory(long id);
+
+	/**
+	 * @param collect
+	 * @param pageSize 
+	 * @param pageIndex 
+	 * @return
+	 */
+	@Select("<script>"
+			+ "SELECT A.id,"
+			+ "C.display_name AS authorName,"
+			+ "A.title,"
+			+ "A.summary,"
+			+ "A.reading_number,"
+			+ "A.like_number,"
+			+ "B.c_name AS categoryName,"
+			+ "A.publish_date,"
+			+ "A.original "
+			+ "FROM t_article AS A "
+			+ "JOIN t_category AS B "
+			+ "ON A.category_id = B.c_id "
+			+ "JOIN t_user AS C "
+			+ "ON C.u_uid = A.author_id WHERE A.open = 1 AND A.id IN "
+			+ "<foreach collection='ids' item='id' index='index' open='(' close=')' separator=','>"
+			+ "#{id}"
+			+ "</foreach>"
+			+ "ORDER BY A.publish_date DESC LIMIT #{pageIndex},#{pageSize} "
+			+ "</script>")
+	@ResultMap(value = "ArticleDOMap")
+	List<ArticleDO> getArtcleByIds(@Param("ids")List<Long> ids, @Param("pageIndex")int pageIndex,@Param("pageSize")int pageSize);
+
+	/**
+	 * @param collect
+	 * @return
+	 */
+	@Select("<script>"
+			+ "SELECT COUNT(*) FROM t_article AS A  WHERE A.open = 1 AND A.id IN "
+			+ "<foreach collection='ids' item='id' index='index' open='(' close=')' separator=','>"
+			+ "#{id}"
+			+ "</foreach>"
+			+ "</script>")
+	int getArtcleCountByIds(@Param("ids")List<Long> ids);
 }

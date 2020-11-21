@@ -12,13 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.zy.blog.annotation.DisableAuth;
 import com.zy.blog.common.Response;
 import com.zy.blog.controller.param.LoginReq;
 import com.zy.blog.controller.param.RegistrationReq;
-import com.zy.blog.controller.param.ValiateTokenReq;
 import com.zy.blog.entity.UserInfo;
 import com.zy.blog.service.IUserService;
 import com.zy.blog.util.ResponseUtil;
@@ -48,14 +48,15 @@ public class UserController {
 	
 	/**
 	 * 激活用户
-	 * @param userUid 用户uid
+	 * @param email 用户邮箱
 	 * @param code 激活码
 	 * @return
 	 */
 	@DisableAuth
-	@PostMapping(value="/valiate",consumes = "application/json")
-	public Response valiateToken(@RequestBody @Valid ValiateTokenReq req) {
-		userService.valiateRegistCode(req.getUserUid(), req.getCode());
+	@PostMapping(value="/valiate")
+	public Response emailVerify(@RequestParam("code") String code,
+            @RequestParam("email") String email) {
+		userService.valiateRegistCode(email, code);
 		return ResponseUtil.success(true);
 	}
 	

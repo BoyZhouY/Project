@@ -9,6 +9,7 @@ package com.zy.blog.service.impl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.zy.blog.dbentity.Tag;
 import com.zy.blog.mapper.TagMapper;
@@ -18,6 +19,7 @@ import com.zy.blog.service.ITagService;
  * @author 周泰斗
  * @version 1.0.0.0
  */
+@Service
 public class TagServiceImpl implements ITagService {
 
 	@Autowired

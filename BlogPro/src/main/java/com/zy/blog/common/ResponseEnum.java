@@ -17,7 +17,8 @@ public enum ResponseEnum {
     USERNAME_HAS_EXIST(-3,"用户名已存在"),
 	PARAM_ERROR(-4,"参数错误"),
 	AUTH_ERROR(-5,"权限错误"),
-	NORECORD_ERROR(-6,"数据不存在");
+	NORECORD_ERROR(-6,"数据不存在"),
+	USER_NOT_ACTIVE(-7,"用户未激活");
 
     private int code;
     private String msg;

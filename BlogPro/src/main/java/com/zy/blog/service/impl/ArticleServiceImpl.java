@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -40,6 +41,7 @@ import com.zy.blog.util.RegexUtil;
  * @author 周泰斗
  * @version 1.0.0.0
  */
+@Service
 public class ArticleServiceImpl implements IArticleService {
 
 	@Autowired
@@ -50,10 +52,10 @@ public class ArticleServiceImpl implements IArticleService {
 
 	@Autowired
 	private ArticleMapper articleMapper;
-	
+
 	@Autowired
 	private RedisUtil redisUtil;
-	
+
 	@Autowired
 	private UserMapper userMapper;
 
@@ -62,7 +64,8 @@ public class ArticleServiceImpl implements IArticleService {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public ArticleModel addArtcle(String userUid, String title, String mdContent, String tags, String url, String categorys,
+	public ArticleModel addArtcle(String userUid, String title, String mdContent, String tags, String url,
+			String categorys,
 			boolean open, boolean original) {
 		ArticleModel model = new ArticleModel();
 		// 转载,判断链接
@@ -74,19 +77,19 @@ public class ArticleServiceImpl implements IArticleService {
 			}
 		}
 
-		//查询分类在不在
+		// 查询分类在不在
 		Category category = categoryMapper.queryByName(categorys);
 		if (category == null) {
 			throw new MyException(ResponseEnum.NORECORD_ERROR);
 		}
 
-		//开始构建文章
+		// 开始构建文章
 		Article info = new Article();
 		info.setAuthorId(userUid);
 		info.setTitle(title);
 		info.setMdContent(mdContent);
 		info.setOpen(open ? 1 : 0);
-		info.setOriginal(original ? 1:0);
+		info.setOriginal(original ? 1 : 0);
 		info.setPublishDate(new Date());
 		info.setCategoryId(category.getId());
 
@@ -95,7 +98,7 @@ public class ArticleServiceImpl implements IArticleService {
 
 		// 寻找上一篇文章Id
 		Article preArticle = articleMapper.getLastArticle();
-		if (preArticle == null) {//上篇文章是空的，则不设置
+		if (preArticle == null) {// 上篇文章是空的，则不设置
 			isUpdatePreArticle = false;
 		} else {
 			// 设置
@@ -104,7 +107,7 @@ public class ArticleServiceImpl implements IArticleService {
 		}
 
 		// 将tags分割，并查询是否存在，不存在则创建
-		List<ArticleTag> articleTag = createArticleTag(model,tags);
+		List<ArticleTag> articleTag = createArticleTag(model, tags);
 
 		// 生成概要信息，概要信息为文章开头256个字符
 		String summary = "概要信息";
@@ -121,21 +124,21 @@ public class ArticleServiceImpl implements IArticleService {
 			// 添加文章的对应标签信息
 			tagMapper.insertArticleTag(articleTag);
 		}
-		
-		fullTransform(info,model);
+
+		fullTransform(info, model);
 		return model;
 	}
 
 	/**
-	 * @param info 
+	 * @param info
 	 * @return
 	 */
-	private void fullTransform(Article info,ArticleModel model) {
+	private void fullTransform(Article info, ArticleModel model) {
 		model.setId(info.getId());
 		model.setTitle(info.getTitle());
 		model.setSummary(info.getSummary());
 		model.setMdContent(info.getMdContent());
-		model.setOriginal(info.getOriginal() == 1? true :false);
+		model.setOriginal(info.getOriginal() == 1 ? true : false);
 		model.setUrl(info.getUrl());
 		model.setPublishDate(info.getPublishDate());
 		model.setUpdateDate(info.getUpdateDate());
@@ -149,19 +152,19 @@ public class ArticleServiceImpl implements IArticleService {
 		model.setReadingNumber(info.getReadNumber());
 		model.setOpen(info.getOpen() == 1 ? true : false);
 	}
-	
+
 	/**
 	 * 创建文章标签
 	 * 
 	 * @param tags
 	 * @return
 	 */
-	private List<ArticleTag> createArticleTag(ArticleModel model,String tags) {
+	private List<ArticleTag> createArticleTag(ArticleModel model, String tags) {
 		List<ArticleTag> articleTag = new ArrayList<ArticleTag>();
 		if (!StringUtils.isEmpty(tags)) {
-			//将所有的空格全部替换为空
+			// 将所有的空格全部替换为空
 			tags = tags.replaceAll("\\s+", "");
-			//用,分割标签
+			// 用,分割标签
 			String[] tagNames = tags.split(",");
 			for (String tagName : tagNames) {
 				Tag tag = tagMapper.queryByName(tagName);
@@ -170,7 +173,7 @@ public class ArticleServiceImpl implements IArticleService {
 					tag.setTagName(tagName);
 					tagMapper.insert(tag);
 				}
-				
+
 				// 保存标签的Id
 				ArticleTag aTag = new ArticleTag();
 				aTag.setTagId(tag.getId());
@@ -186,47 +189,38 @@ public class ArticleServiceImpl implements IArticleService {
 	 * 根据不同模式查询最新数据
 	 */
 	@Override
-	public List<ArticleDO> queryArtcle(int mode,int pageIndex) {
-		//这里使用静态工厂来适应不同文章的统计
-		// 最新，评论最多，点赞最多
+	public List<ArticleDO> queryArtcle(int mode, int pageIndex) {
+		// 这里使用静态工厂来适应不同文章的统计
+		// 最新，阅读最多，点赞最多
 		String queryFields = ArticleQueryFactory.getQueryFieldByMode(mode);
-		if(StringUtils.isEmpty(queryFields)) {
+		if (StringUtils.isEmpty(queryFields)) {
 			throw new MyException(ResponseEnum.PARAM_ERROR);
 		}
-		if(pageIndex <= 0) {
+		if (pageIndex <= 0) {
 			pageIndex = 1;
 		}
 		pageIndex -= 1;
-		List<ArticleDO> articleInfos = articleMapper.query(queryFields,pageIndex * pageSize,pageSize);
+		List<ArticleDO> articleInfos = articleMapper.query(queryFields, pageIndex * pageSize, pageSize);
 		return articleInfos;
-	}
-	
-	private static class ArticleQueryFactory {
-		
-		private static Map<Integer,String> maps = new HashMap<>();
-		
-		static {
-			maps.put(1, "publish_date");//发布时间
-			maps.put(2, "reading_number");//阅读数
-			maps.put(3, "like_number");//点赞数
-		}
-		
-		public static String getQueryFieldByMode(int mode) {
-			return maps.get(mode);
-		}
 	}
 
 	@Override
-	public ArticleModel queryArtcleById(long articleId,String userUid) {
+	public int queryArtcleCount() {
+		int count = articleMapper.queryCount();
+		return count;
+	}
+
+	@Override
+	public ArticleModel queryArtcleById(long articleId, String userUid) {
 		ArticleModel model = new ArticleModel();
-		//是否可见
+		// 是否可见
 		Article article = articleMapper.getArticleById(articleId);
-		//根据用户uid查询用户登录信息
+		// 根据用户uid查询用户登录信息
 		String token = redisUtil.get("userUid");
-		//查询用户信息
+		// 查询用户信息
 		User user = userMapper.findByUserUid(userUid);
-		
-		if(article.getOpen() == 1 || article.getOpen() == 0 && user.getIsAdmin() == 1 && token != null) {
+
+		if (article.getOpen() == 1 || article.getOpen() == 0 &&  user != null && user.getIsAdmin() == 1 && token != null) {
 			if (article.getPreId() != -1) {
 				Article preArticle = articleMapper.getArticleById(article.getPreId());
 				model.setPreArticleTitle(preArticle.getTitle());
@@ -235,46 +229,46 @@ public class ArticleServiceImpl implements IArticleService {
 				Article nextArticle = articleMapper.getArticleById(article.getNextId());
 				model.setNextArticleTitle(nextArticle.getTitle());
 			}
-			
+
 			List<Tag> tags = tagMapper.getByArticleId(articleId);
-			List<String> tagNames = tags.stream().map(x->x.getTagName()).collect(Collectors.toList());
+			List<String> tagNames = tags.stream().map(x -> x.getTagName()).collect(Collectors.toList());
 			model.setTags(tagNames.toArray(new String[tagNames.size()]));
-			fullTransform(article,model);
+			fullTransform(article, model);
 			return model;
-		}else {
+		} else {
 			throw new MyException(ResponseEnum.AUTH_ERROR);
 		}
 	}
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public ArticleModel updateArtcle(long articleId,ArticleReq req) {
+	public ArticleModel updateArtcle(long articleId, ArticleReq req) {
 		ArticleModel model = new ArticleModel();
-		
-		//查询分类在不在
+
+		// 查询分类在不在
 		Category category = categoryMapper.queryByName(req.getCategory());
 		if (category == null) {
 			throw new MyException(ResponseEnum.NORECORD_ERROR);
 		}
-		
+
 		Article info = new Article();
 		info.setId(articleId);
 		info.setAuthorId(req.getUserUid());
 		info.setTitle(req.getTitle());
 		info.setMdContent(req.getMdContent());
 		info.setOpen(req.getOpen() ? 1 : 0);
-		info.setOriginal(req.getOriginal() ? 1:0);
+		info.setOriginal(req.getOriginal() ? 1 : 0);
 		info.setUpdateDate(new Date());
-		
-		//检查当前更新的文章是否存在
+
+		// 检查当前更新的文章是否存在
 		Article old_article = articleMapper.getArticleById(articleId);
-		if(old_article == null) {
+		if (old_article == null) {
 			throw new MyException(ResponseEnum.NORECORD_ERROR);
 		}
-		
+
 		// 将tags分割，并查询是否存在，不存在则创建
-		List<ArticleTag> articleTag = createArticleTag(model,req.getTags());
-		
+		List<ArticleTag> articleTag = createArticleTag(model, req.getTags());
+
 		// 生成概要信息，概要信息为文章开头256个字符
 		String summary = "概要信息";
 		info.setSummary(summary);
@@ -285,8 +279,8 @@ public class ArticleServiceImpl implements IArticleService {
 			// 添加文章的对应标签信息
 			tagMapper.insertArticleTag(articleTag);
 		}
-		
-		fullTransform(info,model);
+
+		fullTransform(info, model);
 		return model;
 	}
 
@@ -294,38 +288,124 @@ public class ArticleServiceImpl implements IArticleService {
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteArtcle(long articleId) {
 		Article old_article = articleMapper.getArticleById(articleId);
-		if(old_article == null) {
+		if (old_article == null) {
+			throw new MyException(ResponseEnum.NORECORD_ERROR);
+		}
+
+		// 获取上一篇和下一篇
+		Article preArticle = articleMapper.getArticleById(old_article.getPreId());
+		Article nextArticle = articleMapper.getArticleById(old_article.getNextId());
+
+		// 删除的文章处于中间位置
+		if (nextArticle != null && preArticle != null) {
+
+			// 修改上一篇文章的“下一篇文章”y
+			articleMapper.updateNextArticleId(old_article.getPreId(), old_article.getNextId());
+
+			// 修改下一篇文章的 “上一篇文章”
+			articleMapper.updatePreArticleId(old_article.getNextId(), old_article.getPreId());
+		}
+		if (preArticle == null && nextArticle != null) {
+			// 删除的是第一篇文章
+			articleMapper.updatePreArticleId(nextArticle.getId(), -1);
+		}
+		if (nextArticle == null && preArticle != null) {
+			// 删除的是最后一篇文章
+			articleMapper.updateNextArticleId(preArticle.getId(), -1);
+		}
+
+		// 删除和文章相关的评论--
+
+		// 删除和文章相关的artcle_tag记录
+		tagMapper.deleteArticleTagByArtcleId(articleId);
+
+		// 删除文章
+		articleMapper.deleteById(articleId);
+	}
+
+	@Override
+	public List<ArticleDO> queryArtcleByCategory(String categoryName,int pageIndex) {
+		// 定义返回
+		List<ArticleDO> results = new ArrayList<ArticleDO>();
+
+		// 根据分类名称查询分类
+		Category category = categoryMapper.queryByName(categoryName);
+		if (category == null) {
 			throw new MyException(ResponseEnum.NORECORD_ERROR);
 		}
 		
-		//获取上一篇和下一篇
-		Article preArticle = articleMapper.getArticleById(old_article.getPreId());
-        Article nextArticle = articleMapper.getArticleById(old_article.getNextId());
-        
-        //删除的文章处于中间位置
-        if (nextArticle != null && preArticle != null) {
+		if (pageIndex <= 0) {
+			pageIndex = 1;
+		}
+		pageIndex -= 1;
 
-            //修改上一篇文章的“下一篇文章”y
-            articleMapper.updateNextArticleId(old_article.getPreId(), old_article.getNextId());
+		// 根据分类Id查询符合条件的文章
+		results = articleMapper.queryArtcleByCategoryId(category.getId(),pageIndex * pageSize,pageSize);
 
-            //修改下一篇文章的 “上一篇文章”
-            articleMapper.updatePreArticleId(old_article.getNextId(), old_article.getPreId());
-        }
-        if (preArticle == null && nextArticle != null) {
-            //删除的是第一篇文章
-            articleMapper.updatePreArticleId(nextArticle.getId(), -1);
-        }
-        if (nextArticle == null && preArticle != null) {
-            //删除的是最后一篇文章
-            articleMapper.updateNextArticleId(preArticle.getId(), -1);
-        }
-        
-        //删除和文章相关的评论--
-        
-        //删除和文章相关的artcle_tag记录
-        tagMapper.deleteArticleTagByArtcleId(articleId);
-        
-		//删除文章
-        articleMapper.deleteById(articleId);
+		return results;
+	}
+
+	private static class ArticleQueryFactory {
+
+		private static Map<Integer, String> maps = new HashMap<>();
+
+		static {
+			maps.put(1, "publish_date");// 发布时间
+			maps.put(2, "reading_number");// 阅读数
+			maps.put(3, "like_number");// 点赞数
+		}
+
+		public static String getQueryFieldByMode(int mode) {
+			return maps.get(mode);
+		}
+	}
+
+	@Override
+	public int queryArtcleCountByCategory(String categoryName) {
+		Category category = categoryMapper.queryByName(categoryName);
+		if (category == null) {
+			throw new MyException(ResponseEnum.NORECORD_ERROR);
+		}
+		
+		int count = articleMapper.queryArtcleCountByCategory(category.getId());
+		return count;
+	}
+
+	@Override
+	public List<ArticleDO> queryArtcleByTag(String tagName, int pageIndex) {
+		List<ArticleDO> results = new ArrayList<ArticleDO>();
+		//根据标签名称获取标签Id
+		Tag tag = tagMapper.queryByName(tagName);
+		if (tag == null) {
+			throw new MyException(ResponseEnum.NORECORD_ERROR);
+		}
+		
+		if (pageIndex <= 0) {
+			pageIndex = 1;
+		}
+		pageIndex -= 1;
+		
+		//获取标签关联的文章
+		List<ArticleTag> articleTags = tagMapper.getArticleTagByTagId(tag.getId());
+		List<Long> collect = articleTags.stream().map(x -> x.getArtcleId()).collect(Collectors.toList());
+		
+		results = articleMapper.getArtcleByIds(collect,pageIndex * pageSize,pageSize);
+		return results;
+	}
+
+	@Override
+	public int queryArtcleCountByTag(String tagName) {
+		//根据标签名称获取标签Id
+		Tag tag = tagMapper.queryByName(tagName);
+		if (tag == null) {
+			throw new MyException(ResponseEnum.NORECORD_ERROR);
+		}
+		
+		//获取标签关联的文章
+		List<ArticleTag> articleTags = tagMapper.getArticleTagByTagId(tag.getId());
+		List<Long> collect = articleTags.stream().map(x -> x.getArtcleId()).collect(Collectors.toList());
+		
+		int count = articleMapper.getArtcleCountByIds(collect);
+		return count;
 	}
 }

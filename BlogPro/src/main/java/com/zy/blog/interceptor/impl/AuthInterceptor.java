@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.method.HandlerMethod;
 
@@ -23,7 +22,6 @@ import com.zy.blog.util.ResponseUtil;
  * @author 周泰斗
  * @version 1.0.0.0
  */
-@Component
 public class AuthInterceptor extends BaseInterceptor {
 	/**
 	 * 用户服务
