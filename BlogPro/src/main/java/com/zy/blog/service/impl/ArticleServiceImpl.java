@@ -20,7 +20,6 @@ import org.springframework.util.StringUtils;
 
 import com.zy.blog.common.ResponseEnum;
 import com.zy.blog.controller.param.ArticleReq;
-import com.zy.blog.dbentity.ArtcleCategory;
 import com.zy.blog.dbentity.Article;
 import com.zy.blog.dbentity.ArticleTag;
 import com.zy.blog.dbentity.Category;
@@ -75,8 +74,11 @@ public class ArticleServiceImpl implements IArticleService {
 			}
 		}
 
-		//现将分类改为一个文章可以添加多个分类
-		List<ArtcleCategory> articleCategorys = createArticleCategory(model,categorys);
+		//查询分类在不在
+		Category category = categoryMapper.queryByName(categorys);
+		if (category == null) {
+			throw new MyException(ResponseEnum.NORECORD_ERROR);
+		}
 
 		//开始构建文章
 		Article info = new Article();
@@ -86,6 +88,7 @@ public class ArticleServiceImpl implements IArticleService {
 		info.setOpen(open ? 1 : 0);
 		info.setOriginal(original ? 1:0);
 		info.setPublishDate(new Date());
+		info.setCategoryId(category.getId());
 
 		// 是否需要更新上一篇文章
 		boolean isUpdatePreArticle = true;
@@ -118,10 +121,6 @@ public class ArticleServiceImpl implements IArticleService {
 			// 添加文章的对应标签信息
 			tagMapper.insertArticleTag(articleTag);
 		}
-		if (articleCategorys.size() > 0) {
-			// 添加文章的对应标签信息
-			categoryMapper.insertArticleCategory(articleCategorys);
-		}
 		
 		fullTransform(info,model);
 		return model;
@@ -141,45 +140,16 @@ public class ArticleServiceImpl implements IArticleService {
 		model.setPublishDate(info.getPublishDate());
 		model.setUpdateDate(info.getUpdateDate());
 		model.setAuthorId(info.getAuthorId());
-		model.setAuthorName("");
+		User user = userMapper.findByUserUid(info.getAuthorId());
+		model.setAuthorName(user.getDisplayName());
+		String categoryName = categoryMapper.queryById(info.getCategoryId()).getName();
+		model.setCategory(categoryName);
 		model.setPreArticleId(info.getPreId());
 		model.setNextArticleId(info.getNextId());
 		model.setReadingNumber(info.getReadNumber());
 		model.setOpen(info.getOpen() == 1 ? true : false);
 	}
 	
-	/**
-	 * 创建文章标签
-	 * 
-	 * @param tags
-	 * @return
-	 */
-	private List<ArtcleCategory> createArticleCategory(ArticleModel model,String categorys) {
-		List<ArtcleCategory> articleCategory = new ArrayList<ArtcleCategory>();
-		if (!StringUtils.isEmpty(categorys)) {
-			//将所有的空格全部替换为空
-			categorys = categorys.replaceAll("\\s+", "");
-			//用,分割标签
-			String[] categoryNames = categorys.split(",");
-			for (String categoryName : categoryNames) {
-				Category category = categoryMapper.queryByName(categoryName);
-				if (category == null) {
-					category = new Category();
-					category.setName(categoryName);
-					categoryMapper.insert(category);
-				}
-				
-				// 保存标签的Id
-				ArtcleCategory acCategory = new ArtcleCategory();
-				acCategory.setArtcleId(model.getId());
-				acCategory.setCategoryId(category.getId());
-				articleCategory.add(acCategory);
-			}
-			model.setCategorys(categoryNames);
-		}
-		return articleCategory;
-	}
-
 	/**
 	 * 创建文章标签
 	 * 
@@ -280,8 +250,12 @@ public class ArticleServiceImpl implements IArticleService {
 	@Transactional(rollbackFor = Exception.class)
 	public ArticleModel updateArtcle(long articleId,ArticleReq req) {
 		ArticleModel model = new ArticleModel();
-		//现将分类改为一个文章可以添加多个分类
-		List<ArtcleCategory> articleCategorys = createArticleCategory(model,req.getCategorys());
+		
+		//查询分类在不在
+		Category category = categoryMapper.queryByName(req.getCategory());
+		if (category == null) {
+			throw new MyException(ResponseEnum.NORECORD_ERROR);
+		}
 		
 		Article info = new Article();
 		info.setId(articleId);
@@ -311,10 +285,7 @@ public class ArticleServiceImpl implements IArticleService {
 			// 添加文章的对应标签信息
 			tagMapper.insertArticleTag(articleTag);
 		}
-		if (articleCategorys.size() > 0) {
-			// 添加文章的对应标签信息
-			categoryMapper.insertArticleCategory(articleCategorys);
-		}
+		
 		fullTransform(info,model);
 		return model;
 	}

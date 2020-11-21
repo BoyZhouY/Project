@@ -18,7 +18,6 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
-import com.zy.blog.dbentity.ArtcleCategory;
 import com.zy.blog.dbentity.Category;
 
 /**
@@ -63,17 +62,6 @@ public interface CategoryMapper {
 	@Insert("INSERT INTO t_category (c_name,c_desc)VALUES(#{category.name},#{category.desc})")
 	@Options(useGeneratedKeys=true, keyProperty="id")
 	void insert(Category category);
-
-	/**
-	 * @param articleCategorys
-	 */
-	@Insert("<script>"
-			+ "INSERT IGNORE INTO t_artcle_category VALUES"
-			+ "<foreach collection='articleCategorys' item='item' index='index' separator=','>"
-			+ "(#{item.artcleId},#{item.categoryId})"
-			+ "</foreach>"
-			+ "</script>")
-	void insertArticleCategory(@Param("articleCategorys")List<ArtcleCategory> articleCategorys);
 
 	/**
 	 * @param id

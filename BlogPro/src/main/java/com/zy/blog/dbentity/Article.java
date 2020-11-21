@@ -20,6 +20,7 @@ public class Article {
 	private String title;
 	private String summary;
 	private String mdContent;
+	private long categoryId;
 	private String url;
 	private String authorId;
 	private int open;

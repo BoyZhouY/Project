@@ -60,7 +60,7 @@ public class ArticleReq {
 	 */
 	@NotNull(message = "文章分类为空")
 	@NotBlank(message = "文章分类为空")
-	private String categorys;
+	private String category;
 	
 	/**
 	 * 是否为发布  true-发布 false-不发布

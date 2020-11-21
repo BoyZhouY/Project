@@ -61,7 +61,7 @@ public class ArticleModel {
     /**
      * 分类
      */
-    private String[] categorys;
+    private String category;
 
     /**
      * 标签

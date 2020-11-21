@@ -46,7 +46,7 @@ public class ArticleController {
 	@PostMapping(value = "/artcle")
 	public Response addArtcle(@RequestBody @Valid ArticleReq body) {
 		ArticleModel addArtcle = articleService.addArtcle(body.getUserUid(), body.getTitle(), body.getMdContent(), body.getTags(), body.getUrl(),
-				body.getCategorys(), body.getOpen(), body.getOriginal());
+				body.getCategory(), body.getOpen(), body.getOriginal());
 		return ResponseUtil.success(addArtcle);
 	}
 
